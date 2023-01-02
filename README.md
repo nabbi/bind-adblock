@@ -12,7 +12,6 @@ Uses the following sources:
 * [MVPS HOSTS](http://winhelp2002.mvps.org/)
 * [Adaway default blocklist](https://adaway.org/hosts.txt)
 * [Dan Pollock’s hosts file](http://someonewhocares.org/hosts/zero/)
-* [MalwareDomainList.com Hosts List](http://www.malwaredomainlist.com/hostslist/hosts.txt)
 * [StevenBlack Unified hosts file](https://github.com/StevenBlack/hosts)
 * [CAMELEON](http://sysctl.org/cameleon/)
 * [Disconnect.me Basic tracking list](https://disconnect.me/trackerprotection)
