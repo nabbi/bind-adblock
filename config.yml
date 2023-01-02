@@ -34,6 +34,10 @@ lists:
   - url: 'https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts'
     format: hosts
 
+  #YouTube Ads
+  - url: 'https://raw.githubusercontent.com/kboghdady/youTube_ads_4_pi-hole/master/youtubelist.txt'
+    format: hosts
+
   # Cameleon
   - url: 'http://sysctl.org/cameleon/hosts'
     format: hosts
