@@ -1,5 +1,4 @@
 FROM python:latest
-LABEL maintainer="nic@boet.cc"
 
 ENV SRC="."
 
