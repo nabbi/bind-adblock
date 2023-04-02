@@ -29,6 +29,7 @@ import email.utils as eut
 import os
 import hashlib
 import re
+import sys
 import dns.zone
 import dns.name
 import dns.version
@@ -69,8 +70,7 @@ def download_list(url):
         last_modified = datetime.utcfromtimestamp(cache.stat().st_mtime)
         headers = {
                 'If-modified-since': eut.format_datetime(last_modified),
-                'User-Agent': 'Bind adblock zonfile updater v1.0 \
-                        (https://github.com/Trellmor/bind-adblock)'
+                'User-Agent': 'Bind adblock zonfile updater v1.0 (https://github.com/Trellmor/bind-adblock)'
                 }
 
     try:
@@ -99,8 +99,8 @@ def check_domain(domain, origin):
         domain = '*.' + domain
 
     try:
-        dns.name.from_text(domain, origin)
-    except DNSException:
+        name = dns.name.from_text(domain, origin)
+    except DNSException as e:
         return False
 
     if not validators.domain(domain):
@@ -170,8 +170,7 @@ def load_zone(zonefile, origin, raw):
 
     if not path.exists():
         with tmpPath.open('w') as f:
-            f.write(f'@ 3600 IN SOA @ admin.{origin}. 0 86400 7200 2592000 86400\n@ 3600 IN NS \
-                    LOCALHOST.')
+            f.write('@ 3600 IN SOA @ admin.{}. 0 86400 7200 2592000 86400\n@ 3600 IN NS LOCALHOST.'.format(origin))
 
         save_zone(tmpPath, zonefile, origin, raw)
 
@@ -196,8 +195,9 @@ def load_zone(zonefile, origin, raw):
         try:
             compile_zone(zonefile, tmpPath, origin, 'raw', 'text')
             path = tmpPath
-        except Exception:
+        except:
             pass
+
 
     with path.open('r') as f:
         for line in f:
