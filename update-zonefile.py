@@ -29,6 +29,7 @@ import email.utils as eut
 import os
 import hashlib
 import re
+import sys
 import dns.zone
 import dns.name
 import dns.version
