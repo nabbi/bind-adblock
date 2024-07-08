@@ -1,0 +1,10 @@
+#! /usr/bin/env bash
+
+(
+cd /opt/bind-adblock;
+source ./venv/bin/activate;
+python3 ./update-zonefile.py /var/bind/pri/rpz-adblocker.zone rpz.adblocker;
+deactivate
+) 2>&1 > /var/log/rpz-adblocker.log
+
+
