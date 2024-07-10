@@ -377,9 +377,8 @@ if __name__ == "__main__":
                         RESTORECON = subprocess.call(cmd_restorecon)
                         if RESTORECON != 0:
                             raise Exception(
-                                "Cannot run selinux restorecon on the zonefile - return code {}".format(
-                                    RESTORECON
-                                )
+                                f"Cannot run selinux restorecon on the zonefile - \
+                                        return code {RESTORECON}"
                             )
             reload_zone(args.origin, args.views)
         else:
