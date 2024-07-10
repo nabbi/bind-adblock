@@ -111,7 +111,7 @@ def check_domain(domain, origin):
         return False
 
     if not validators.domain(domain):
-        print("Ignoring invalid domain {}".format(domain))
+        print(f"Ignoring invalid domain {domain}")
         return False
 
     return True
@@ -138,7 +138,7 @@ def parse_lists(origin):
 
         if data:
             lines = data.splitlines()
-            print("\t{} lines".format(len(lines)))
+            print(f"\t{len(lines)} lines")
 
             c = len(domains)
 
@@ -166,9 +166,9 @@ def parse_lists(origin):
                 if check_domain(domain, origin_name):
                     domains.add(domain)
 
-            print("\t{} domains".format(len(domains) - c))
+            print(f"\t{len(domains) - c} domains")
 
-    print("\nTotal\n\t{} domains".format(len(domains)))
+    print(f"\nTotal\n\t{len(domains)} domains")
     return domains
 
 
@@ -243,24 +243,24 @@ def rndc_reload(cmd):
         r = subprocess.check_output(cmd, stderr=subprocess.PIPE)
 
     except subprocess.CalledProcessError as e:
-        print("{}".format(e.stderr.decode(sys.getfilesystemencoding())))
+        print(f"{e.stderr.decode(sys.getfilesystemencoding())}")
         if "multiple" in e.stderr.decode("utf-8"):
             sys.exit(
                 "Please pass --views the list of configured BIND views containing origin zone."
             )
         if e.returncode != 0:
-            sys.exit("rndc failed with return code {}".format(e.returncode))
+            sys.exit(f"rndc failed with return code {e.returncode}")
 
-    print("{}".format(r.decode(sys.getfilesystemencoding())))
+    print(f"{r.decode(sys.getfilesystemencoding())}")
 
 
 def reload_zone(origin, views):
     if views:
         for v in views.split():
-            print("view {}, {} ".format(v, origin), end="", flush=True)
+            print(f"view {v}, {origin} ", end="", flush=True)
             rndc_reload(["rndc", "reload", origin, "IN", v])
     else:
-        print("{} ".format(origin), end="", flush=True)
+        print(f"{origin} ", end="", flush=True)
         rndc_reload(["rndc", "reload", origin])
 
 
@@ -282,7 +282,7 @@ def compile_zone(source, target, origin, fromFormat, toFormat):
     ]
     r = subprocess.call(cmd)
     if r != 0:
-        raise Exception("named-compilezone failed with return code {}".format(r))
+        raise Exception(f"named-compilezone failed with return code {r}")
 
 
 def save_zone(tmpzonefile, zonefile, origin, raw):
