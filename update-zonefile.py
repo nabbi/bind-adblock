@@ -361,7 +361,11 @@ if __name__ == "__main__":
                 continue
             append_domain_to_zonefile(f, d)
             if config["wildcard_block"]:
-                append_domain_to_zonefile(f, "*." + d)
+                # RFC1035 validators.domain checks fail when asterisk * added
+                if len(d)<251:
+                    append_domain_to_zonefile(f, "*." + d)
+                else:
+                    print(f"Skipping too-long wildcard: {d}")
 
     if args.no_bind:
         save_zone(tmpzonefile, args.zonefile, args.origin, args.raw_zone)
