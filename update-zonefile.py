@@ -124,7 +124,7 @@ def check_domain(domain, origin):
 
 def read_list(filename):
     path = Path(filename)
-    if path.exists:
+    if os.path.isfile(path):
         with path.open("r", encoding="utf8") as flist:
             return flist.read()
 
