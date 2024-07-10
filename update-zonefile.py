@@ -22,24 +22,25 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import requests
-from pathlib import Path
-from datetime import datetime
 import email.utils as eut
-import os
 import hashlib
+import os
 import re
+import shutil
+import subprocess
 import sys
-import dns.zone
+import textwrap
+from argparse import ArgumentParser
+from datetime import datetime
+from pathlib import Path
+
 import dns.name
 import dns.version
-from dns.exception import DNSException
-import subprocess
-import textwrap
-import shutil
-from argparse import ArgumentParser
-import yaml
+import dns.zone
+import requests
 import validators
+import yaml
+from dns.exception import DNSException
 
 config = {
     # Blocklist download request timeout
