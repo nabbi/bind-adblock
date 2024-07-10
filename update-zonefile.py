@@ -60,11 +60,11 @@ config["cache"] = Path(config["cache"])
 if not config["cache"].is_absolute():
     config["cache"] = Path(parent_dir, config["cache"])
 
-regex_domain = (
+REGEX_DOMAIN = (
     "^(127|0)\\.0\\.0\\.(0|1)[\\s\\t]+(?P<domain>([a-z0-9\\-_]+\\.)+[a-z][a-z0-9_-]*)$"
 )
-regex_no_comment = "^#.*|^$"
-regex_no_comment_in_line = "^([^#]+)"
+REGEX_NO_COMMENT = "^#.*|^$"
+REGEX_NO_COMMENT_IN_LINE = "^([^#]+)"
 
 
 def download_list(url):
@@ -81,18 +81,18 @@ def download_list(url):
         }
 
     try:
-        r = requests.get(url, headers=headers, timeout=config["req_timeout_s"])
+        R = requests.get(url, headers=headers, timeout=config["req_timeout_s"])
 
-        if r.status_code == 200:
+        if R.status_code == 200:
             with cache.open("w", encoding="utf8") as f:
-                f.write(r.text)
-            if "last-modified" in r.headers:
+                f.write(R.text)
+            if "last-modified" in R.headers:
                 last_modified = eut.parsedate_to_datetime(
-                    r.headers["last-modified"]
+                    R.headers["last-modified"]
                 ).timestamp()
                 os.utime(str(cache), times=(last_modified, last_modified))
 
-            return r.text
+            return R.text
     except requests.exceptions.RequestException as e:
         print(e)
 
@@ -145,10 +145,10 @@ def parse_lists(origin):
             for line in data.splitlines():
                 domain = ""
 
-                if re.match(regex_no_comment, line):
+                if re.match(REGEX_NO_COMMENT, line):
                     continue
 
-                m = re.search(regex_no_comment_in_line, line)
+                m = re.search(REGEX_NO_COMMENT_IN_LINE, line)
                 if m:
                     line = m.group(1).strip()
 
@@ -156,7 +156,7 @@ def parse_lists(origin):
                     continue
 
                 if l.get("format", "domain") == "hosts":
-                    m = re.match(regex_domain, line)
+                    m = re.match(REGEX_DOMAIN, line)
                     if m:
                         domain = m.group("domain")
                 else:
@@ -240,7 +240,7 @@ def check_zone(origin, zonefile):
 
 def rndc_reload(cmd):
     try:
-        r = subprocess.check_output(cmd, stderr=subprocess.PIPE)
+        R = subprocess.check_output(cmd, stderr=subprocess.PIPE)
 
     except subprocess.CalledProcessError as e:
         print(f"{e.stderr.decode(sys.getfilesystemencoding())}")
@@ -251,7 +251,7 @@ def rndc_reload(cmd):
         if e.returncode != 0:
             sys.exit(f"rndc failed with return code {e.returncode}")
 
-    print(f"{r.decode(sys.getfilesystemencoding())}")
+    print(f"{R.decode(sys.getfilesystemencoding())}")
 
 
 def reload_zone(origin, views):
@@ -371,11 +371,11 @@ if __name__ == "__main__":
                     )
                     if is_exe("/sbin/restorecon"):
                         cmd = ["/sbin/restorecon", "-F", args.zonefile]
-                        r = subprocess.call(cmd)
-                        if r != 0:
+                        R = subprocess.call(cmd)
+                        if R != 0:
                             raise Exception(
                                 "Cannot run selinux restorecon on the zonefile - return code {}".format(
-                                    r
+                                    R
                                 )
                             )
             reload_zone(args.origin, args.views)
