@@ -54,7 +54,7 @@ config = {
 }
 
 parent_dir = os.path.dirname(os.path.realpath(__file__))
-main_conf_file = os.path.join(parent_dir, "config.yml")
+main_conf_file = Path(os.path.join(parent_dir, "config.yml"))
 
 with main_conf_file.open("r", encoding="utf8") as fconfig:
     config = yaml.safe_load(fconfig)
@@ -103,6 +103,8 @@ def download_list(url):
         with cache.open("r", encoding="utf8") as fcache:
             return fcache.read()
 
+    return ""
+
 
 def check_domain(domain, origin):
     if domain == "":
@@ -125,6 +127,8 @@ def read_list(filename):
     if path.exists:
         with path.open("r", encoding="utf8") as flist:
             return flist.read()
+
+    return ""
 
 
 def parse_lists(origin):
