@@ -271,13 +271,13 @@ def is_exe(fpath):
     return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
 
 
-def compile_zone(source, target, origin, fromFormat, toFormat):
+def compile_zone(source, target, origin, from_format, to_format):
     cmd = [
         "named-compilezone",
         "-f",
-        fromFormat,
+        from_format,
         "-F",
-        toFormat,
+        to_format,
         "-o",
         str(target),
         origin,
