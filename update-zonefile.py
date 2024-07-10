@@ -81,24 +81,24 @@ def download_list(url):
         }
 
     try:
-        R = requests.get(url, headers=headers, timeout=config["req_timeout_s"])
+        req = requests.get(url, headers=headers, timeout=config["req_timeout_s"])
 
-        if R.status_code == 200:
-            with cache.open("w", encoding="utf8") as f:
-                f.write(R.text)
-            if "last-modified" in R.headers:
+        if req.status_code == 200:
+            with cache.open("w", encoding="utf8") as fcache:
+                fcache.write(req.text)
+            if "last-modified" in req.headers:
                 last_modified = eut.parsedate_to_datetime(
-                    R.headers["last-modified"]
+                    req.headers["last-modified"]
                 ).timestamp()
                 os.utime(str(cache), times=(last_modified, last_modified))
 
-            return R.text
+            return req.text
     except requests.exceptions.RequestException as e:
         print(e)
 
     if cache.is_file():
-        with cache.open("r", encoding="utf8") as f:
-            return f.read()
+        with cache.open("r", encoding="utf8") as fcache:
+            return fcache.read()
 
 
 def check_domain(domain, origin):
@@ -120,12 +120,12 @@ def check_domain(domain, origin):
 def read_list(filename):
     path = Path(filename)
     if path.exists:
-        with path.open("r", encoding="utf8") as f:
-            return f.read()
+        with path.open("r", encoding="utf8") as flist:
+            return flist.read()
 
 
 def parse_lists(origin):
-    domains = set()
+    parsed = set()
     origin_name = dns.name.from_text(origin)
     for l in config["lists"]:
         data = None
@@ -140,7 +140,7 @@ def parse_lists(origin):
             lines = data.splitlines()
             print(f"\t{len(lines)} lines")
 
-            c = len(domains)
+            c = len(parsed)
 
             for line in data.splitlines():
                 domain = ""
@@ -164,12 +164,12 @@ def parse_lists(origin):
 
                 domain = domain.strip()
                 if check_domain(domain, origin_name):
-                    domains.add(domain)
+                    parsed.add(domain)
 
-            print(f"\t{len(domains) - c} domains")
+            print(f"\t{len(parsed) - c} domains")
 
-    print(f"\nTotal\n\t{len(domains)} domains")
-    return domains
+    print(f"\nTotal\n\t{len(parsed)} domains")
+    return parsed
 
 
 def load_zone(zonefile, origin, raw):
@@ -178,8 +178,8 @@ def load_zone(zonefile, origin, raw):
     tmpPath = Path(config["cache"], "tempzone")
 
     if not path.exists():
-        with tmpPath.open("w") as f:
-            f.write(
+        with tmpPath.open("w") as fzone:
+            fzone.write(
                 f"@ 3600 IN SOA @ admin.{origin}. 0 86400 7200 2592000 86400\n@ 3600 IN NS \
                     LOCALHOST."
             )
@@ -214,8 +214,8 @@ def load_zone(zonefile, origin, raw):
         except Exception:
             pass
 
-    with path.open("r") as f:
-        for line in f:
+    with path.open("r") as fzone:
+        for line in fzone:
             zone_text += line
             if "IN NS" in line:
                 break
@@ -223,8 +223,8 @@ def load_zone(zonefile, origin, raw):
     return dns.zone.from_text(zone_text, origin)
 
 
-def update_serial(zone):
-    soaset = zone.get_rdataset("@", dns.rdatatype.SOA)
+def update_serial(zone_name):
+    soaset = zone_name.get_rdataset("@", dns.rdatatype.SOA)
     soa = soaset[0]
     if dns.version.MAJOR < 2:
         soa.serial += 1
@@ -240,7 +240,7 @@ def check_zone(origin, zonefile):
 
 def rndc_reload(cmd):
     try:
-        R = subprocess.check_output(cmd, stderr=subprocess.PIPE)
+        reload = subprocess.check_output(cmd, stderr=subprocess.PIPE)
 
     except subprocess.CalledProcessError as e:
         print(f"{e.stderr.decode(sys.getfilesystemencoding())}")
@@ -251,7 +251,7 @@ def rndc_reload(cmd):
         if e.returncode != 0:
             sys.exit(f"rndc failed with return code {e.returncode}")
 
-    print(f"{R.decode(sys.getfilesystemencoding())}")
+    print(f"{reload.decode(sys.getfilesystemencoding())}")
 
 
 def reload_zone(origin, views):
@@ -280,16 +280,16 @@ def compile_zone(source, target, origin, fromFormat, toFormat):
         origin,
         str(source),
     ]
-    r = subprocess.call(cmd)
-    if r != 0:
-        raise Exception(f"named-compilezone failed with return code {r}")
+    compilezone = subprocess.call(cmd)
+    if compilezone != 0:
+        raise Exception(f"named-compilezone failed with return code {compilezone}")
 
 
-def save_zone(tmpzonefile, zonefile, origin, raw):
+def save_zone(tmpzonefile1, zonefile, origin, raw):
     if raw:
-        compile_zone(tmpzonefile, zonefile, origin, "text", "raw")
+        compile_zone(tmpzonefile1, zonefile, origin, "text", "raw")
     else:
-        shutil.move(str(tmpzonefile), str(zonefile))
+        shutil.move(str(tmpzonefile1), str(zonefile))
 
 
 def append_domain_to_zonefile(file, domain):
@@ -362,20 +362,20 @@ if __name__ == "__main__":
         if check_zone(args.origin, tmpzonefile):
             save_zone(tmpzonefile, args.zonefile, args.origin, args.raw_zone)
             if is_exe("/usr/sbin/getenforce"):
-                cmd = ["/usr/sbin/getenforce"]
-                r = subprocess.check_output(cmd).strip()
-                print("SELinux getenforce output / Current State is: ", r)
-                if r == b"Enforcing":
+                cmd_getenforce = ["/usr/sbin/getenforce"]
+                getenforce = subprocess.check_output(cmd_getenforce).strip()
+                print("SELinux getenforce output / Current State is: ", getenforce)
+                if getenforce == b"Enforcing":
                     print(
                         "SELinux restorecon being run to reset MAC security context on zone file"
                     )
                     if is_exe("/sbin/restorecon"):
-                        cmd = ["/sbin/restorecon", "-F", args.zonefile]
-                        R = subprocess.call(cmd)
-                        if R != 0:
+                        cmd_restorecon = ["/sbin/restorecon", "-F", args.zonefile]
+                        RESTORECON = subprocess.call(cmd_restorecon)
+                        if RESTORECON != 0:
                             raise Exception(
                                 "Cannot run selinux restorecon on the zonefile - return code {}".format(
-                                    R
+                                    RESTORECON
                                 )
                             )
             reload_zone(args.origin, args.views)
