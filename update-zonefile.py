@@ -55,7 +55,10 @@ config = {
 
 parent_dir = os.path.dirname(os.path.realpath(__file__))
 main_conf_file = os.path.join(parent_dir, "config.yml")
-config = yaml.safe_load(open(main_conf_file))
+
+with main_conf_file.open("r", encoding="utf8") as fconfig:
+    config = yaml.safe_load(fconfig)
+
 config["cache"] = Path(config["cache"])
 if not config["cache"].is_absolute():
     config["cache"] = Path(parent_dir, config["cache"])
@@ -178,7 +181,7 @@ def load_zone(zonefile, origin, raw):
     tmpPath = Path(config["cache"], "tempzone")
 
     if not path.exists():
-        with tmpPath.open("w") as fzone:
+        with tmpPath.open("w", encoding="utf8") as fzone:
             fzone.write(
                 f"@ 3600 IN SOA @ admin.{origin}. 0 86400 7200 2592000 86400\n@ 3600 IN NS \
                     LOCALHOST."
@@ -214,7 +217,7 @@ def load_zone(zonefile, origin, raw):
         except Exception:
             pass
 
-    with path.open("r") as fzone:
+    with path.open("r", encoding="utf8") as fzone:
         for line in fzone:
             zone_text += line
             if "IN NS" in line:
@@ -348,7 +351,7 @@ if __name__ == "__main__":
     tmpzonefile = Path(config["cache"], "tempzone")
     zone.to_file(str(tmpzonefile))
 
-    with tmpzonefile.open("a") as f:
+    with tmpzonefile.open("a", encoding="utf8") as f:
         for d in sorted(domains):
             if d in config["domain_whitelist"]:
                 continue
