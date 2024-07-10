@@ -178,16 +178,16 @@ def parse_lists(origin):
 def load_zone(zonefile, origin, raw):
     zone_text = ""
     path = Path(zonefile)
-    tmpPath = Path(config["cache"], "tempzone")
+    tmppath = Path(config["cache"], "tempzone")
 
     if not path.exists():
-        with tmpPath.open("w", encoding="utf8") as fzone:
+        with tmppath.open("w", encoding="utf8") as fzone:
             fzone.write(
                 f"@ 3600 IN SOA @ admin.{origin}. 0 86400 7200 2592000 86400\n@ 3600 IN NS \
                     LOCALHOST."
             )
 
-        save_zone(tmpPath, zonefile, origin, raw)
+        save_zone(tmppath, zonefile, origin, raw)
 
         print(
             textwrap.dedent(
@@ -212,8 +212,8 @@ def load_zone(zonefile, origin, raw):
 
     if raw:
         try:
-            compile_zone(zonefile, tmpPath, origin, "raw", "text")
-            path = tmpPath
+            compile_zone(zonefile, tmppath, origin, "raw", "text")
+            path = tmppath
         except Exception:
             pass
 
