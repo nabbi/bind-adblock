@@ -31,7 +31,7 @@ import subprocess
 import sys
 import textwrap
 from argparse import ArgumentParser
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 import dns.name
@@ -63,9 +63,8 @@ config["cache"] = Path(config["cache"])
 if not config["cache"].is_absolute():
     config["cache"] = Path(parent_dir, config["cache"])
 
-REGEX_DOMAIN = (
-    "^(127|0)\\.0\\.0\\.(0|1)[\\s\\t]+(?P<domain>([a-z0-9\\-_]+\\.)+[a-z][a-z0-9_-]*)$"
-)
+REGEX_DOMAIN = r"^\s*(?:(?:\d{1,3}\.){3}\d{1,3}|::1)\s+(?P<domain>([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+)$"
+REGEX_BARE_DOMAIN = re.compile(r"^([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$")
 REGEX_NO_COMMENT = "^#.*|^$"
 REGEX_NO_COMMENT_IN_LINE = "^([^#]+)"
 
@@ -76,7 +75,7 @@ def download_list(url):
     cache = Path(config["cache"], hashlib.sha1(url.encode()).hexdigest())
 
     if cache.is_file():
-        last_modified = datetime.utcfromtimestamp(cache.stat().st_mtime)
+        last_modified = datetime.fromtimestamp(cache.stat().st_mtime, tz=timezone.utc)
         headers = {
             "If-modified-since": eut.format_datetime(last_modified),
             "User-Agent": "Bind adblock zonfile updater v1.0 \
@@ -116,7 +115,10 @@ def check_domain(domain, origin):
         return False
 
     if not validators.domain(domain):
-        print(f"Ignoring invalid domain {domain}")
+        if "_" in domain:
+            print(f"Skipping domain with underscore (invalid for RPZ): {domain}")
+        else:
+            print(f"Ignoring invalid domain {domain}")
         return False
 
     return True
@@ -136,46 +138,77 @@ def parse_lists(origin):
     origin_name = dns.name.from_text(origin)
     for l in config["lists"]:
         data = None
+        source_label = l.get("url") or l.get("file")
+        print(f"Processing: {source_label}")
+
         if "url" in l:
-            print(l["url"])
             data = download_list(l["url"])
         elif "file" in l:
-            print(l["file"])
             data = read_list(l["file"])
 
         if data:
-            lines = data.splitlines()
-            print(f"\t{len(lines)} lines")
+            raw_lines = data.splitlines()
+            print(f"  Raw lines loaded: {len(raw_lines)}")
 
-            c = len(parsed)
+            lines = []
+            ignored_empty = 0
+            ignored_comment = 0
+            ignored_format = 0
+            ignored_invalid = 0
+            matched = 0
 
-            for line in data.splitlines():
+            if l.get("format") == "infoblox":
+                import csv
+                import io
+
+                reader = csv.reader(io.StringIO(data))
+                for row in reader:
+                    if len(row) < 2:
+                        ignored_format += 1
+                        continue
+                    domain = row[1].strip().lower()
+                    lines.append(domain)
+
+            else:
+                lines = raw_lines
+
+            for line in lines:
                 domain = ""
 
-                if re.match(REGEX_NO_COMMENT, line):
+                if re.match(r"^\s*#.*$", line):
+                    ignored_comment += 1
                     continue
 
-                m = re.search(REGEX_NO_COMMENT_IN_LINE, line)
-                if m:
-                    line = m.group(1).strip()
+                # Strip inline comments
+                line = re.sub(r"\s+#.*$", "", line).strip()
 
-                if line == "":
+                if not line:
+                    ignored_empty += 1
                     continue
 
                 if l.get("format", "domain") == "hosts":
                     m = re.match(REGEX_DOMAIN, line)
                     if m:
                         domain = m.group("domain")
+                    else:
+                        ignored_format += 1
+                        continue
                 else:
                     domain = line
 
                 domain = domain.strip()
                 if check_domain(domain, origin_name):
                     parsed.add(domain)
+                    matched += 1
+                else:
+                    ignored_invalid += 1
 
-            print(f"\t{len(parsed) - c} domains")
+            print(f"  Domains matched: {matched}")
+            print(
+                f"  Lines ignored: {ignored_empty} empty, {ignored_comment} comment, {ignored_format} bad format, {ignored_invalid} invalid domain\n"
+            )
 
-    print(f"\nTotal\n\t{len(parsed)} domains")
+    print(f"Total unique domains: {len(parsed)}\n")
     return parsed
 
 
@@ -362,7 +395,7 @@ if __name__ == "__main__":
             append_domain_to_zonefile(f, d)
             if config["wildcard_block"]:
                 # RFC1035 validators.domain checks fail when asterisk * added
-                if len(d)<251:
+                if len(d) < 251:
                     append_domain_to_zonefile(f, "*." + d)
                 else:
                     print(f"Skipping too-long wildcard: {d}")

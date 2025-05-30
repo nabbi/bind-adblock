@@ -47,5 +47,30 @@ lists:
   # Polish CERT - https://www.cert.pl/ostrzezenia_phishing/
   - url: 'https://hole.cert.pl/domains/domains.txt'
 
+  # Phishing Domains Blocklist
+  # https://gitlab.com/malware-filter/phishing-filter
+  - url: 'https://malware-filter.gitlab.io/malware-filter/phishing-filter-domains.txt'
+
+  # HaGeZi's Fake DNS Blocklist
+  - url: 'https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/fake-onlydomains.txt'
+
+  # HaGeZi's Ultimate DNS Blocklist
+  # https://github.com/hagezi/dns-blocklists?tab=readme-ov-file#fake
+  - url: 'https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/ultimate-onlydomains.txt'
+
+  # InfobloxOpen Threat Intel
+  - url: 'https://raw.githubusercontent.com/infobloxopen/threat-intelligence/refs/heads/main/indicators/combined.csv'
+    format: infoblox
+
+  # Blocklist Project
+  - url: 'https://blocklistproject.github.io/Lists/malware.txt'
+    format: hosts
+  - url: 'https://blocklistproject.github.io/Lists/ransomware.txt'
+    format: hosts
+  - url: 'https://blocklistproject.github.io/Lists/scam.txt'
+    format: hosts
+  - url: 'https://blocklistproject.github.io/Lists/ads.txt'
+    format: hosts
+
 # Don't block domains listed here
 domain_whitelist: []
