@@ -64,9 +64,6 @@ if not config["cache"].is_absolute():
     config["cache"] = Path(parent_dir, config["cache"])
 
 REGEX_DOMAIN = r"^\s*(?:(?:\d{1,3}\.){3}\d{1,3}|::1)\s+(?P<domain>([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+)$"
-REGEX_BARE_DOMAIN = re.compile(r"^([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$")
-REGEX_NO_COMMENT = "^#.*|^$"
-REGEX_NO_COMMENT_IN_LINE = "^([^#]+)"
 
 
 def download_list(url):
