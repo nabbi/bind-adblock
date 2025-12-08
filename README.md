@@ -22,7 +22,7 @@ Uses (by default) the following sources, as defined in `config.yml`:
 * [HaGeZi's Fake DNS Blocklist](https://github.com/hagezi/dns-blocklists)
 * [HaGeZi's Ultimate DNS Blocklist](https://github.com/hagezi/dns-blocklists)
 * [InfobloxOpen Threat Intelligence](https://github.com/infobloxopen/threat-intelligence)
-* [Blocklist Project (malware, ransomware, scam, ads)](https://blocklistproject.github.io/)
+* [Blocklist Project (malware, ransomware, scam, ads)](https://blocklistproject.github.io/Lists/)
 
 See the supplied `config.yml` to view or modify the exact lists.
 
