@@ -14,7 +14,6 @@ Uses (by default) the following sources, as defined in `config.yml`:
 * [Adaway default blocklist](https://adaway.org/hosts.txt)
 * [Dan Pollock’s hosts file](https://www.someonewhocares.org/hosts/zero/)
 * [StevenBlack Unified hosts file](https://github.com/StevenBlack/hosts)
-* [CAMELEON](http://sysctl.org/cameleon/)
 * [Disconnect.me Basic tracking list](https://disconnect.me/trackerprotection)
 * [Disconnect.me Ad Filter list](https://disconnect.me/trackerprotection)
 * [Polish CERT Phishing list](https://www.cert.pl/ostrzezenia_phishing/)

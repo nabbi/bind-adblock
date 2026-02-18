@@ -46,19 +46,19 @@ import yaml
 from dns.exception import DNSException
 
 config = {
-    # Blocklist download request timeout
     "req_timeout_s": 10,
-    # Also block *.domain.tld
     "wildcard_block": False,
-    # Cache directory
-    "cache": Path(os.path.dirname(os.path.realpath(__file__))),
+    "cache": ".cache/bind_adblock",
+    "blocking_mode": "NXDOMAIN",
+    "lists": [],
+    "domain_whitelist": [],
 }
 
 parent_dir = os.path.dirname(os.path.realpath(__file__))
 main_conf_file = Path(os.path.join(parent_dir, "config.yml"))
 
 with main_conf_file.open("r", encoding="utf8") as fconfig:
-    config = yaml.safe_load(fconfig)
+    config.update(yaml.safe_load(fconfig))
 
 config["cache"] = Path(config["cache"])
 if not config["cache"].is_absolute():
@@ -69,7 +69,7 @@ REGEX_DOMAIN = r"^\s*(?:(?:\d{1,3}\.){3}\d{1,3}|::1)\s+(?P<domain>([a-zA-Z0-9_-]
 
 def download_list(url):
     headers = {
-        "User-Agent": "Bind adblock zonfile updater v1.0 (https://github.com/Trellmor/bind-adblock)",
+        "User-Agent": "Bind adblock zonefile updater v1.0 (https://github.com/Trellmor/bind-adblock)",
     }
     cache = Path(config["cache"], hashlib.sha1(url.encode()).hexdigest())
 
@@ -88,6 +88,8 @@ def download_list(url):
                 ).timestamp()
                 os.utime(str(cache), times=(last_modified, last_modified))
             return req.text
+        elif req.status_code != 304:
+            print(f"Unexpected status {req.status_code} downloading {url}")
     except requests.exceptions.RequestException as e:
         print(f"Error downloading {url}: {e}")
 
