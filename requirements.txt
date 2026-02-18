@@ -3,7 +3,6 @@ charset-normalizer
 decorator
 dnspython
 idna
-pathlib
 PyYAML
 requests
 urllib3

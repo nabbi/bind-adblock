@@ -34,10 +34,6 @@ lists:
   - url: 'https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts'
     format: hosts
 
-  # Cameleon
-  - url: 'http://sysctl.org/cameleon/hosts'
-    format: hosts
-
   # Disconnect.me Tracking
   - url: 'https://s3.amazonaws.com/lists.disconnect.me/simple_tracking.txt'
 

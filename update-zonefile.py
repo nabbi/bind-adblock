@@ -68,15 +68,14 @@ REGEX_DOMAIN = r"^\s*(?:(?:\d{1,3}\.){3}\d{1,3}|::1)\s+(?P<domain>([a-zA-Z0-9_-]
 
 
 def download_list(url):
-    headers = None
+    headers = {
+        "User-Agent": "Bind adblock zonfile updater v1.0 (https://github.com/Trellmor/bind-adblock)",
+    }
     cache = Path(config["cache"], hashlib.sha1(url.encode()).hexdigest())
 
     if cache.is_file():
         last_modified = datetime.fromtimestamp(cache.stat().st_mtime, tz=timezone.utc)
-        headers = {
-            "If-modified-since": eut.format_datetime(last_modified),
-            "User-Agent": "Bind adblock zonfile updater v1.0 (https://github.com/Trellmor/bind-adblock)",
-        }
+        headers["If-modified-since"] = eut.format_datetime(last_modified)
 
     try:
         req = requests.get(url, headers=headers, timeout=config["req_timeout_s"])
@@ -152,9 +151,6 @@ def parse_lists(origin):
             matched = 0
 
             if l.get("format") == "infoblox":
-                import csv
-                import io
-
                 reader = csv.reader(io.StringIO(data))
                 for row in reader:
                     if len(row) < 2:
@@ -214,8 +210,7 @@ def load_zone(zonefile, origin, raw):
     if not path.exists():
         with tmppath.open("w", encoding="utf8") as fzone:
             fzone.write(
-                f"@ 3600 IN SOA @ admin.{origin}. 0 86400 7200 2592000 86400\n@ 3600 IN NS \
-                    LOCALHOST."
+                f"@ 3600 IN SOA @ admin.{origin}. 0 86400 7200 2592000 86400\n@ 3600 IN NS LOCALHOST."
             )
 
         save_zone(tmppath, zonefile, origin, raw)
@@ -296,10 +291,6 @@ def reload_zone(origin, views):
     else:
         print(f"{origin} ", end="", flush=True)
         rndc_reload(["rndc", "reload", origin])
-
-
-def is_exe(fpath):
-    return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
 
 
 def compile_zone(source, target, origin, from_format, to_format):
